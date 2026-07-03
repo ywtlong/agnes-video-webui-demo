@@ -1,0 +1,1994 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Agnes Video Console Demo</title>
+  <style>
+    :root {
+      --bg: #f7f5ef;
+      --surface: #fffdfa;
+      --surface-2: #f0eee7;
+      --text: #1f2933;
+      --muted: #68737d;
+      --line: #ded8cc;
+      --teal: #0f766e;
+      --green: #15803d;
+      --amber: #b45309;
+      --rose: #be123c;
+      --blue: #2563eb;
+      --ink: #111827;
+      --shadow: 0 18px 48px rgba(31, 41, 51, 0.12);
+      --radius: 8px;
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    button:disabled,
+    input:disabled,
+    textarea:disabled,
+    select:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 253, 250, 0.92);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius);
+      background: var(--ink);
+      color: #fff;
+      font-weight: 800;
+      letter-spacing: 0;
+      flex: 0 0 auto;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .brand small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 30px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--teal);
+      flex: 0 0 auto;
+    }
+
+    .layout {
+      width: 100%;
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .side,
+    .workspace {
+      min-width: 0;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .panel + .panel {
+      margin-top: 14px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 14px 0;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+
+    .panel-body {
+      padding: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--text);
+      min-height: 40px;
+      padding: 9px 10px;
+      outline: none;
+      transition: border-color 0.16s, box-shadow 0.16s;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 128px;
+      line-height: 1.45;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .row-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .btn {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: var(--radius);
+      border: 1px solid transparent;
+      padding: 9px 12px;
+      background: var(--ink);
+      color: #fff;
+      font-weight: 750;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 auto;
+    }
+
+    .btn.secondary {
+      background: #fff;
+      color: var(--text);
+      border-color: var(--line);
+    }
+
+    .btn.ghost {
+      background: transparent;
+      color: var(--muted);
+      border-color: transparent;
+    }
+
+    .btn.warn {
+      background: var(--rose);
+      color: #fff;
+    }
+
+    .btn.teal {
+      background: var(--teal);
+      color: #fff;
+    }
+
+    .btn.full {
+      width: 100%;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+    }
+
+    .icon-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .key-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .key-card {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--key-color, var(--teal));
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 10px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .key-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .key-name {
+      min-width: 0;
+      font-weight: 800;
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .masked {
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .key-meta {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .mini-stat {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 6px;
+      background: var(--surface-2);
+      text-align: center;
+    }
+
+    .mini-stat b {
+      display: block;
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    .mini-stat span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .switch-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .switch-row input {
+      width: 17px;
+      height: 17px;
+      min-height: 17px;
+      accent-color: var(--teal);
+    }
+
+    .composer {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.7fr);
+      gap: 14px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-left,
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .summary-item {
+      min-height: 74px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 12px;
+    }
+
+    .summary-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .summary-item b {
+      display: block;
+      margin-top: 8px;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .lanes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      align-items: start;
+      min-width: 0;
+    }
+
+    .lane {
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--key-color, var(--teal));
+      border-radius: var(--radius);
+      background: var(--surface);
+      min-height: 220px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .lane-header {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .lane-title {
+      min-width: 0;
+    }
+
+    .lane-title h3 {
+      margin: 0;
+      font-size: 14px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .lane-title small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .lane-body {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .task-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 10px;
+      display: grid;
+      gap: 9px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .task-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .task-id {
+      color: var(--muted);
+      font-size: 11px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .status.queued,
+    .status.creating {
+      background: var(--amber);
+    }
+
+    .status.remote,
+    .status.running {
+      background: var(--blue);
+    }
+
+    .status.completed {
+      background: var(--green);
+    }
+
+    .status.failed {
+      background: var(--rose);
+    }
+
+    .task-prompt {
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      overflow-wrap: anywhere;
+    }
+
+    .progress {
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--surface-2);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: var(--progress, 0%);
+      background: var(--key-color, var(--teal));
+      transition: width 0.25s ease;
+    }
+
+    .task-foot {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      min-width: 0;
+    }
+
+    .task-foot > span:first-child {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .tiny-btn {
+      min-height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      padding: 5px 8px;
+      background: #fff;
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    .empty {
+      min-height: 132px;
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      text-align: center;
+      padding: 16px;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .toast-wrap {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 30;
+      display: grid;
+      gap: 10px;
+      width: min(360px, calc(100vw - 36px));
+    }
+
+    .toast {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--teal);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      padding: 11px 12px;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .toast.error {
+      border-left-color: var(--rose);
+    }
+
+    .history-list {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .history-row {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(140px, 0.45fr) minmax(90px, 0.25fr) minmax(0, 0.8fr);
+      gap: 10px;
+      align-items: start;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .history-label {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .history-value {
+      min-width: 0;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+
+    .clip {
+      max-width: 100%;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .video-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .video-card {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--key-color, var(--teal));
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 11px;
+      display: grid;
+      gap: 9px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .video-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .video-card h3 {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.25;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .video-meta {
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .video-meta code {
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .video-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .video-note {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface-2);
+      color: var(--muted);
+      padding: 7px 8px;
+      font-size: 11px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .danger-zone {
+      border-top: 1px solid var(--line);
+      margin-top: 12px;
+      padding-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .desktop-only {
+      display: inline;
+    }
+
+    @media (max-width: 1080px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .panel + .panel {
+        margin-top: 0;
+      }
+
+      .composer {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (min-width: 1081px) and (max-width: 1320px) {
+      .layout {
+        grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
+        gap: 14px;
+        padding: 16px;
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 14px;
+      }
+
+      .layout {
+        padding: 12px;
+      }
+
+      .side {
+        grid-template-columns: 1fr;
+      }
+
+      .row,
+      .row-3,
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
+        align-items: stretch;
+      }
+
+      .toolbar-left,
+      .toolbar-right,
+      .btn {
+        width: 100%;
+      }
+
+      .desktop-only {
+        display: none;
+      }
+
+      .history-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">AV</div>
+        <div>
+          <h1>Agnes Video Console</h1>
+          <small>Local WebUI Demo</small>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="pill"><span class="dot"></span><span id="modeLabel">模拟模式</span></span>
+        <span class="pill">启用 Key <b id="enabledKeyCount">0</b></span>
+        <span class="pill">运行中 <b id="runningCount">0</b></span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="side">
+        <section class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">API Key</h2>
+            <button class="icon-btn" id="seedKeysBtn" type="button" title="添加演示 Key">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+            </button>
+          </div>
+          <form class="panel-body" id="keyForm" autocomplete="off">
+            <div class="field">
+              <label for="keyName">名称</label>
+              <input id="keyName" autocomplete="username" placeholder="例如 Key A">
+            </div>
+            <div class="field">
+              <label for="apiKey">API Key</label>
+              <input id="apiKey" type="password" autocomplete="current-password" placeholder="agnes_xxx 或 sk_xxx">
+            </div>
+            <div class="field">
+              <label for="runMode">运行模式</label>
+              <select id="runMode">
+                <option value="mock">模拟模式</option>
+                <option value="real">真实 API</option>
+              </select>
+            </div>
+            <p class="subtle">真实 API 模式下密钥只保存在当前页面内存，不写入本地存储。</p>
+            <button class="btn full teal" id="addKeyBtn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+              添加 Key
+            </button>
+            <div class="danger-zone">
+              <button class="btn secondary" id="clearDoneBtn" type="button">清理完成</button>
+              <button class="btn ghost" id="resetBtn" type="button">重置演示</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Key 分组</h2>
+          </div>
+          <div class="panel-body">
+            <div class="key-list" id="keyList"></div>
+          </div>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <div class="summary-grid">
+          <div class="summary-item"><span>总任务</span><b id="totalCount">0</b></div>
+          <div class="summary-item"><span>排队</span><b id="queuedCount">0</b></div>
+          <div class="summary-item"><span>已完成</span><b id="completedCount">0</b></div>
+        </div>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">生成任务</h2>
+          </div>
+          <div class="panel-body">
+            <div class="composer">
+              <div>
+                <div class="field">
+                  <label for="prompt">提示词</label>
+                  <textarea id="prompt">A cinematic shot of a cat walking on the beach at sunset, soft ocean waves, warm golden lighting, realistic motion</textarea>
+                </div>
+                <div class="field">
+                  <label for="negativePrompt">负面提示词</label>
+                  <input id="negativePrompt" placeholder="low quality, distorted, blurry">
+                </div>
+                <div class="field">
+                  <label for="imageUrls">图片 URL</label>
+                  <textarea id="imageUrls" style="min-height:76px" placeholder="一行一个 URL，图生视频/多图/关键帧时使用"></textarea>
+                </div>
+              </div>
+
+              <div>
+                <div class="row">
+                  <div class="field">
+                    <label for="mode">模式</label>
+                    <select id="mode">
+                      <option value="text">文本生视频</option>
+                      <option value="image">图生视频</option>
+                      <option value="multi">多图生视频</option>
+                      <option value="keyframes">关键帧</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="count">生成数量</label>
+                    <input id="count" type="number" min="1" max="24" value="6">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="field">
+                    <label for="resolutionTier">分辨率档位</label>
+                    <select id="resolutionTier">
+                      <option value="480">480p</option>
+                      <option value="720" selected>720p</option>
+                      <option value="1080">1080p</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="aspectRatio">宽高比</label>
+                    <select id="aspectRatio">
+                      <option value="16:9" selected>16:9 横版</option>
+                      <option value="9:16">9:16 竖版</option>
+                      <option value="1:1">1:1 方形</option>
+                      <option value="4:3">4:3 传统横版</option>
+                      <option value="3:4">3:4 竖版演示</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="field">
+                    <label for="frames">帧数</label>
+                    <input id="frames" type="number" min="1" max="441" step="8" value="121">
+                  </div>
+                  <div class="field">
+                    <label for="fps">帧率</label>
+                    <input id="fps" type="number" min="1" max="60" value="24">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="field">
+                    <label for="seed">Seed</label>
+                    <input id="seed" type="number" placeholder="随机">
+                  </div>
+                  <div class="field">
+                    <label for="inferenceSteps">推理步数</label>
+                    <input id="inferenceSteps" type="number" min="1" step="1" placeholder="默认">
+                  </div>
+                </div>
+                <div class="toolbar">
+                  <div class="toolbar-left"></div>
+                  <div class="toolbar-right">
+                    <button class="btn warn" id="pauseBtn" type="button">暂停</button>
+                    <button class="btn teal" id="startBtn" type="button">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+                      开始生成
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-top:14px">
+          <div class="panel-header">
+            <h2 class="panel-title">并行队列</h2>
+          </div>
+          <div class="panel-body">
+            <div class="lanes" id="lanes"></div>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-top:14px">
+          <div class="panel-header">
+            <h2 class="panel-title">完成视频</h2>
+          </div>
+          <div class="panel-body">
+            <div class="video-list" id="completedVideos"></div>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-top:14px">
+          <div class="panel-header">
+            <h2 class="panel-title">历史记录</h2>
+          </div>
+          <div class="panel-body">
+            <div class="history-list" id="historyBody"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script>
+    const STORAGE_KEY = "agnes-video-console-demo:v1";
+    const AGNES_MODEL = "agnes-video-v2.0";
+    const AGNES_CREATE_URL = "https://apihub.agnes-ai.com/v1/videos";
+    const AGNES_QUERY_URL = "https://apihub.agnes-ai.com/agnesapi";
+    const colors = ["#0f766e", "#2563eb", "#b45309", "#be123c", "#15803d", "#7c3aed"];
+    const sessionSecrets = new Map();
+    const realPollTimers = new Map();
+    let isPaused = false;
+
+    const initialState = {
+      keys: [],
+      jobs: [],
+      settings: {
+        runMode: "mock",
+        pollIntervalMs: 12000
+      }
+    };
+
+    let state = loadState();
+
+    const $ = (id) => document.getElementById(id);
+
+    const statusText = {
+      queued: "排队",
+      creating: "创建",
+      remote: "远端排队",
+      running: "生成中",
+      completed: "完成",
+      failed: "失败"
+    };
+
+    const statusClass = {
+      queued: "queued",
+      creating: "creating",
+      remote: "remote",
+      running: "running",
+      completed: "completed",
+      failed: "failed"
+    };
+
+    const requestSizePresets = {
+      "480": {
+        "16:9": [854, 480],
+        "9:16": [480, 854],
+        "1:1": [480, 480],
+        "4:3": [640, 480],
+        "3:4": [480, 640]
+      },
+      "720": {
+        "16:9": [1280, 720],
+        "9:16": [720, 1280],
+        "1:1": [720, 720],
+        "4:3": [960, 720],
+        "3:4": [720, 960]
+      },
+      "1080": {
+        "16:9": [1920, 1080],
+        "9:16": [1080, 1920],
+        "1:1": [1080, 1080],
+        "4:3": [1440, 1080],
+        "3:4": [1080, 1440]
+      }
+    };
+
+    function clone(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return clone(initialState);
+        const parsed = JSON.parse(raw);
+        const keys = Array.isArray(parsed.keys) ? parsed.keys.map((key, index) => {
+          const sessionSecret = key.secret || "";
+          if (sessionSecret) sessionSecrets.set(key.id, sessionSecret);
+          return {
+            id: key.id || uid("key"),
+            name: key.name || `Key ${index + 1}`,
+            maskedSecret: key.maskedSecret || maskKey(sessionSecret),
+            color: key.color || colors[index % colors.length],
+            enabled: key.enabled !== false,
+            demo: Boolean(key.demo || sessionSecret.startsWith("agnes_demo_")),
+            createdAt: key.createdAt || Date.now()
+          };
+        }) : [];
+        const jobs = Array.isArray(parsed.jobs) ? parsed.jobs.map((job) => {
+          const next = { ...job };
+          const legacyDone = "down" + "loaded";
+          const legacyBusy = "down" + "loading";
+          if ([legacyDone, legacyBusy].includes(next.status)) {
+            next.status = "completed";
+            next.stage = next.videoUrl ? "completed" : (next.stage || "completed");
+            next.progress = 100;
+          }
+          ["savedVia", "down" + "loadPath", "down" + "loadError", "fileName", "folderPath", "savedAt"].forEach((field) => {
+            delete next[field];
+          });
+          return next;
+        }) : [];
+        const settings = { ...initialState.settings, ...(parsed.settings || {}) };
+        delete settings.fileTemplate;
+        return {
+          keys,
+          jobs,
+          settings
+        };
+      } catch {
+        return clone(initialState);
+      }
+    }
+
+    function saveState() {
+      const safeState = {
+        ...state,
+        keys: state.keys.map(({ secret, hasSessionSecret, ...key }) => ({
+          ...key,
+          maskedSecret: key.maskedSecret || maskKey(sessionSecrets.get(key.id))
+        }))
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(safeState));
+    }
+
+    function uid(prefix) {
+      return `${prefix}_${Math.random().toString(16).slice(2, 8)}_${Date.now().toString(36)}`;
+    }
+
+    function nowTime() {
+      return new Date().toLocaleTimeString("zh-CN", { hour12: false });
+    }
+
+    function maskKey(value) {
+      if (!value) return "未设置";
+      const clean = value.trim();
+      if (clean.length <= 10) return `${clean.slice(0, 3)}...`;
+      return `${clean.slice(0, 6)}...${clean.slice(-4)}`;
+    }
+
+    function toast(message, type = "info") {
+      const node = document.createElement("div");
+      node.className = `toast ${type === "error" ? "error" : ""}`;
+      node.textContent = message;
+      $("toastWrap").appendChild(node);
+      setTimeout(() => node.remove(), 3600);
+    }
+
+    function getRunMode() {
+      return state.settings.runMode === "real" ? "real" : "mock";
+    }
+
+    function getKeySecret(key) {
+      return key ? sessionSecrets.get(key.id) || "" : "";
+    }
+
+    function displayKey(key) {
+      return maskKey(getKeySecret(key)) || key.maskedSecret || "未设置";
+    }
+
+    function getRequestSize(tier, ratio) {
+      const preset = requestSizePresets[String(tier)]?.[String(ratio)]
+        || requestSizePresets["720"]["16:9"];
+      return { width: preset[0], height: preset[1] };
+    }
+
+    function isActiveStatus(status) {
+      return ["creating", "remote", "running"].includes(status);
+    }
+
+    function isRetryableStatus(code) {
+      return [0, 408, 429, 499, 500, 502, 503, 504, 520, 522, 524].includes(Number(code));
+    }
+
+    function classifyHttpError(code) {
+      const map = {
+        0: "网络请求失败",
+        400: "请求参数错误",
+        401: "API Key 无效或过期",
+        402: "账户额度不足",
+        403: "Key 无权限访问模型",
+        404: "任务或接口不存在",
+        409: "重复任务冲突",
+        413: "请求体过大",
+        422: "视频参数不合法",
+        429: "请求过快，已触发限流",
+        500: "服务端错误",
+        502: "网关错误",
+        503: "服务繁忙",
+        504: "网关超时"
+      };
+      return map[Number(code)] || `HTTP ${code || "网络错误"}`;
+    }
+
+    function getEnabledKeys() {
+      return state.keys.filter((key) => key.enabled);
+    }
+
+    function getKey(id) {
+      return state.keys.find((key) => key.id === id);
+    }
+
+    function keyStats(keyId) {
+      const jobs = state.jobs.filter((job) => job.keyId === keyId);
+      return {
+        queued: jobs.filter((job) => job.status === "queued").length,
+        running: jobs.filter((job) => isActiveStatus(job.status)).length,
+        done: jobs.filter((job) => job.status === "completed").length,
+        failed: jobs.filter((job) => job.status === "failed").length
+      };
+    }
+
+    function jobStats() {
+      return {
+        total: state.jobs.length,
+        queued: state.jobs.filter((job) => job.status === "queued").length,
+        running: state.jobs.filter((job) => isActiveStatus(job.status)).length,
+        completed: state.jobs.filter((job) => job.status === "completed").length
+      };
+    }
+
+    function render() {
+      $("runMode").value = getRunMode();
+      $("modeLabel").textContent = getRunMode() === "real" ? "真实 API" : "模拟模式";
+      const enabled = getEnabledKeys().length;
+      const stats = jobStats();
+      $("enabledKeyCount").textContent = enabled;
+      $("runningCount").textContent = stats.running;
+      $("totalCount").textContent = stats.total;
+      $("queuedCount").textContent = stats.queued;
+      $("completedCount").textContent = stats.completed;
+      $("pauseBtn").textContent = isPaused ? "继续" : "暂停";
+      renderKeyList();
+      renderLanes();
+      renderCompletedVideos();
+      renderHistory();
+      saveState();
+    }
+
+    function renderKeyList() {
+      const wrap = $("keyList");
+      wrap.innerHTML = "";
+      if (!state.keys.length) {
+        wrap.innerHTML = `<div class="empty">暂无 Key</div>`;
+        return;
+      }
+
+      state.keys.forEach((key) => {
+        const stats = keyStats(key.id);
+        const card = document.createElement("div");
+        card.className = "key-card";
+        card.style.setProperty("--key-color", key.color);
+        card.innerHTML = `
+          <div class="key-head">
+            <div style="min-width:0">
+              <div class="key-name">${escapeHtml(key.name)}</div>
+              <div class="masked">${escapeHtml(displayKey(key))}${getRunMode() === "real" && !getKeySecret(key) ? " / 需重输" : ""}</div>
+            </div>
+            <button class="icon-btn" type="button" title="删除" data-delete-key="${key.id}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path></svg>
+            </button>
+          </div>
+          <div class="key-meta">
+            <div class="mini-stat"><b>${stats.queued}</b><span>队列</span></div>
+            <div class="mini-stat"><b>${stats.running}</b><span>运行</span></div>
+            <div class="mini-stat"><b>${stats.done}</b><span>完成</span></div>
+            <div class="mini-stat"><b>${stats.failed}</b><span>失败</span></div>
+          </div>
+          <label class="switch-row">
+            <input type="checkbox" data-toggle-key="${key.id}" ${key.enabled ? "checked" : ""}>
+            启用
+          </label>
+        `;
+        wrap.appendChild(card);
+      });
+    }
+
+    function renderLanes() {
+      const wrap = $("lanes");
+      wrap.innerHTML = "";
+      if (!state.keys.length) {
+        wrap.innerHTML = `<div class="empty">添加 Key 后显示独立队列</div>`;
+        return;
+      }
+
+      state.keys.forEach((key) => {
+        const jobs = state.jobs
+          .filter((job) => job.keyId === key.id)
+          .sort((a, b) => a.createdAt - b.createdAt)
+          .slice(-10);
+        const lane = document.createElement("section");
+        lane.className = "lane";
+        lane.style.setProperty("--key-color", key.color);
+        lane.innerHTML = `
+          <div class="lane-header">
+            <div class="lane-title">
+              <h3>${escapeHtml(key.name)}</h3>
+              <small>${escapeHtml(displayKey(key))}${getRunMode() === "real" && !getKeySecret(key) ? " / session missing" : ""}</small>
+            </div>
+            <span class="status ${key.enabled ? "completed" : "failed"}">${key.enabled ? "启用" : "停用"}</span>
+          </div>
+          <div class="lane-body">
+            ${jobs.length ? jobs.map((job) => taskMarkup(job, key)).join("") : `<div class="empty">队列为空</div>`}
+          </div>
+        `;
+        wrap.appendChild(lane);
+      });
+    }
+
+    function taskMarkup(job, key) {
+      const status = statusText[job.status] || job.status;
+      const cls = statusClass[job.status] || "queued";
+      const action = job.status === "failed"
+        ? `<button class="tiny-btn" type="button" data-retry-job="${job.id}">重试</button>`
+        : "";
+      const detail = [job.actualSize || `${job.width}x${job.height}`, job.seconds ? `${job.seconds}s` : "", job.stage || ""]
+        .filter(Boolean)
+        .join(" / ");
+      return `
+        <article class="task-card" style="--key-color:${key.color}">
+          <div class="task-top">
+            <span class="task-id">${escapeHtml(job.localNo)}</span>
+            <span class="status ${cls}">${status}</span>
+          </div>
+          <div class="task-prompt">${escapeHtml(job.prompt)}</div>
+          <div class="progress" title="${job.progress}%"><span style="--progress:${job.progress}%"></span></div>
+          <div class="task-foot">
+            <span title="${escapeHtml(job.taskId || job.videoId || "")}">${escapeHtml(job.videoId || detail || nowTime())}</span>
+            <span class="task-actions">${action}</span>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderCompletedVideos() {
+      const wrap = $("completedVideos");
+      if (!wrap) return;
+      const rows = state.jobs
+        .filter((job) => job.status === "completed" || job.videoUrl)
+        .sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt))
+        .slice(0, 24);
+      if (!rows.length) {
+        wrap.innerHTML = `<div class="empty">生成完成后的视频会显示在这里</div>`;
+        return;
+      }
+      wrap.innerHTML = rows.map((job) => {
+        const key = getKey(job.keyId);
+        const color = key ? key.color : "var(--teal)";
+        const note = getVideoNote(job);
+        const videoLabel = getVideoLabel(job);
+        return `
+          <article class="video-card" style="--key-color:${color}">
+            <div class="video-head">
+              <h3 title="${escapeHtml(job.prompt)}">${escapeHtml(job.localNo)} · ${escapeHtml(key ? key.name : "已删除 Key")}</h3>
+              <span class="status ${statusClass[job.status] || "completed"}">${escapeHtml(statusText[job.status] || job.status)}</span>
+            </div>
+            <div class="video-meta">
+              <div>${escapeHtml(job.actualSize || `${job.width}x${job.height}`)} · ${job.numFrames}f · ${job.fps}fps${job.seconds ? ` · ${escapeHtml(job.seconds)}s` : ""}</div>
+              <div>视频：<code title="${escapeHtml(videoLabel)}">${escapeHtml(compactText(videoLabel, 88))}</code></div>
+            </div>
+            <div class="video-note">${escapeHtml(note)}</div>
+            <div class="video-actions">
+              <button class="tiny-btn" type="button" data-open-video="${job.id}" ${job.videoUrl ? "" : "disabled"}>打开视频</button>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function getVideoNote(job) {
+      if (job.status === "completed" && job.videoUrl) return "视频已生成，可打开查看。";
+      if (job.status === "completed") return "视频已完成，但当前结果缺少可打开的视频链接。";
+      return job.stage || "等待结果";
+    }
+
+    function getVideoLabel(job) {
+      return job.videoId || job.taskId || (job.videoUrl ? "远程视频链接" : "已生成");
+    }
+
+    function compactText(value, maxLength = 96) {
+      const text = String(value || "");
+      if (text.length <= maxLength) return text;
+      const head = Math.ceil((maxLength - 3) * 0.58);
+      const tail = Math.floor((maxLength - 3) * 0.42);
+      return `${text.slice(0, head)}...${text.slice(-tail)}`;
+    }
+
+    function renderHistory() {
+      const body = $("historyBody");
+      const rows = state.jobs.slice().sort((a, b) => b.createdAt - a.createdAt).slice(0, 28);
+      if (!rows.length) {
+        body.innerHTML = `<div class="empty">暂无任务</div>`;
+        return;
+      }
+      body.innerHTML = rows.map((job) => {
+        const key = getKey(job.keyId);
+        const status = statusText[job.status] || job.status;
+        const params = `${job.actualSize || `${job.width}x${job.height}`}, ${job.numFrames}f, ${job.fps}fps${job.seconds ? `, ${job.seconds}s` : ""}`;
+        const result = formatHistoryResult(job);
+        return `
+          <article class="history-row">
+            <div class="history-value">
+              <span class="history-label">任务</span>
+              <span class="task-id">${escapeHtml(job.localNo)}</span>
+              <div class="clip">${escapeHtml(job.prompt)}</div>
+            </div>
+            <div class="history-value">
+              <span class="history-label">Key / 参数</span>
+              <div>${escapeHtml(key ? key.name : "已删除")}</div>
+              <div class="subtle">${escapeHtml(params)}</div>
+            </div>
+            <div class="history-value">
+              <span class="history-label">状态</span>
+              <span class="status ${statusClass[job.status] || "queued"}">${status}</span>
+            </div>
+            <div class="history-value">
+              <span class="history-label">结果</span>
+              <div class="clip" title="${escapeHtml(result)}">${escapeHtml(compactText(result, 86))}</div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function formatHistoryResult(job) {
+      if (job.error) return job.error;
+      if (job.status === "completed") return job.videoUrl ? `视频已生成：${getVideoLabel(job)}` : "视频已完成，缺少视频链接";
+      if (job.videoUrl) return `视频链接：${getVideoLabel(job)}`;
+      return job.stage || "-";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function addKey(name, secret) {
+      const cleanSecret = String(secret || "").trim();
+      if (!cleanSecret) {
+        toast("请输入 API Key", "error");
+        return;
+      }
+      const id = uid("key");
+      sessionSecrets.set(id, cleanSecret);
+      state.keys.push({
+        id,
+        name: String(name || `Key ${state.keys.length + 1}`).trim(),
+        maskedSecret: maskKey(cleanSecret),
+        color: colors[state.keys.length % colors.length],
+        enabled: true,
+        createdAt: Date.now()
+      });
+      $("keyName").value = "";
+      $("apiKey").value = "";
+      toast("Key 已添加");
+      render();
+    }
+
+    function addDemoKeys() {
+      if (state.keys.length) {
+        toast("已存在 Key，可直接开始生成");
+        return;
+      }
+      ["Alpha", "Bravo", "Charlie"].forEach((name, index) => {
+        const id = uid("key");
+        const secret = `agnes_demo_${name.toLowerCase()}_${Math.random().toString(16).slice(2, 10)}`;
+        sessionSecrets.set(id, secret);
+        state.keys.push({
+          id,
+          name: `Demo ${name}`,
+          maskedSecret: maskKey(secret),
+          color: colors[index],
+          enabled: true,
+          demo: true,
+          createdAt: Date.now() + index
+        });
+      });
+      toast("已添加 3 个演示 Key");
+      render();
+    }
+
+    function deleteKey(id) {
+      state.keys = state.keys.filter((key) => key.id !== id);
+      state.jobs = state.jobs.filter((job) => job.keyId !== id);
+      sessionSecrets.delete(id);
+      toast("Key 已删除");
+      render();
+    }
+
+    function readForm() {
+      const prompt = $("prompt").value.trim();
+      if (!prompt) throw new Error("请输入提示词");
+      const count = Number($("count").value || 1);
+      if (!Number.isInteger(count) || count < 1 || count > 24) throw new Error("生成数量必须是 1-24 的整数");
+      const resolutionTier = $("resolutionTier").value;
+      const aspectRatio = $("aspectRatio").value;
+      const { width, height } = getRequestSize(resolutionTier, aspectRatio);
+      const numFrames = Number($("frames").value);
+      const fps = Number($("fps").value);
+      if (!Number.isInteger(numFrames) || numFrames < 1 || numFrames > 441 || (numFrames - 1) % 8 !== 0) {
+        throw new Error("帧数必须是 1-441 内符合 8n + 1 的整数");
+      }
+      if (!Number.isFinite(fps) || fps < 1 || fps > 60) throw new Error("帧率必须在 1-60 之间");
+      const seedText = $("seed").value.trim();
+      const seed = seedText ? Number(seedText) : null;
+      if (seed !== null && !Number.isInteger(seed)) throw new Error("Seed 必须是整数");
+      const inferenceStepsText = $("inferenceSteps").value.trim();
+      const inferenceSteps = inferenceStepsText ? Number(inferenceStepsText) : null;
+      if (inferenceSteps !== null && (!Number.isInteger(inferenceSteps) || inferenceSteps < 1)) {
+        throw new Error("推理步数必须是大于 0 的整数");
+      }
+      const imageUrls = $("imageUrls").value.split(/\n+/).map((item) => item.trim()).filter(Boolean);
+      const mode = $("mode").value;
+      if (mode === "image" && imageUrls.length < 1) {
+        throw new Error("图生视频需要填写至少一个公开图片 URL");
+      }
+      if (["multi", "keyframes"].includes(mode) && imageUrls.length < 2) {
+        throw new Error("多图视频和关键帧模式需要至少两个公开图片 URL");
+      }
+      imageUrls.forEach((url) => {
+        if (!/^https?:\/\/\S+$/i.test(url)) throw new Error(`图片 URL 不合法：${url}`);
+      });
+      return {
+        prompt,
+        negativePrompt: $("negativePrompt").value.trim(),
+        count,
+        width,
+        height,
+        resolutionTier,
+        aspectRatio,
+        numFrames,
+        fps,
+        seed,
+        inferenceSteps,
+        mode,
+        imageUrls
+      };
+    }
+
+    function startBatch() {
+      try {
+        const form = readForm();
+        const keys = getEnabledKeys();
+        if (!keys.length) throw new Error("请至少启用一个 API Key");
+        if (getRunMode() === "real") {
+          const missing = keys.filter((key) => !getKeySecret(key));
+          if (missing.length) throw new Error(`真实 API 模式下有 ${missing.length} 个启用 Key 缺少当前会话密钥，请重新添加或停用`);
+        }
+        const batchId = uid("batch");
+        const existingCount = state.jobs.length;
+
+        for (let index = 0; index < form.count; index += 1) {
+          const key = keys[index % keys.length];
+          state.jobs.push({
+            id: uid("job"),
+            batchId,
+            keyId: key.id,
+            localNo: `JOB-${String(existingCount + index + 1).padStart(3, "0")}`,
+            prompt: form.count > 1 ? `${form.prompt} [variant ${index + 1}]` : form.prompt,
+            negativePrompt: form.negativePrompt,
+            mode: form.mode,
+            imageUrls: form.imageUrls,
+            width: form.width,
+            height: form.height,
+            resolutionTier: form.resolutionTier,
+            aspectRatio: form.aspectRatio,
+            numFrames: form.numFrames,
+            fps: form.fps,
+            seed: form.seed,
+            inferenceSteps: form.inferenceSteps,
+            runMode: getRunMode(),
+            status: "queued",
+            stage: "local queue",
+            progress: 0,
+            attempts: 0,
+            pollAttempts: 0,
+            taskId: null,
+            videoId: null,
+            videoUrl: null,
+            actualSize: null,
+            seconds: null,
+            error: null,
+            createdAt: Date.now() + index,
+            updatedAt: Date.now()
+          });
+        }
+        isPaused = false;
+        toast(keys.length === 1 && form.count > 1 ? "已进入单 Key 串行队列" : "已拆分到多 Key 队列");
+        render();
+        schedulerTick();
+      } catch (error) {
+        toast(error.message, "error");
+      }
+    }
+
+    function schedulerTick() {
+      if (isPaused) return;
+
+      state.keys.filter((key) => key.enabled).forEach((key) => {
+        const active = state.jobs.find((job) => job.keyId === key.id && isActiveStatus(job.status));
+        if (!active) {
+          const next = state.jobs
+            .filter((job) => job.keyId === key.id && job.status === "queued")
+            .sort((a, b) => a.createdAt - b.createdAt)[0];
+          if (next) beginJob(next);
+        }
+      });
+
+      render();
+    }
+
+    function beginJob(job) {
+      job.status = "creating";
+      job.stage = "POST /v1/videos";
+      job.progress = 4;
+      job.updatedAt = Date.now();
+      if ((job.runMode || getRunMode()) === "real") {
+        createRealVideoTask(job.id);
+      } else {
+        simulateProgress(job.id);
+      }
+    }
+
+    function simulateProgress(jobId) {
+      const job = state.jobs.find((item) => item.id === jobId);
+      if (!job || isPaused) return;
+      const delay = 700 + Math.random() * 600;
+
+      setTimeout(() => {
+        const fresh = state.jobs.find((item) => item.id === jobId);
+        if (!fresh || isPaused) return;
+
+        if (fresh.status === "creating") {
+          fresh.taskId = `task_${Math.random().toString(36).slice(2, 12)}`;
+          fresh.videoId = `video_${Math.random().toString(36).slice(2, 12)}`;
+          fresh.status = "remote";
+          fresh.stage = "GET /agnesapi";
+          fresh.progress = 12;
+        } else if (fresh.status === "remote") {
+          fresh.status = "running";
+          fresh.stage = "in_progress";
+          fresh.progress = 22 + Math.floor(Math.random() * 12);
+        } else if (fresh.status === "running") {
+          fresh.progress = Math.min(100, fresh.progress + 12 + Math.floor(Math.random() * 16));
+          if (fresh.progress >= 100) {
+            fresh.status = "completed";
+            fresh.stage = "completed";
+            fresh.videoUrl = `https://storage.googleapis.com/agnes-aigc/demo/${fresh.videoId}.mp4`;
+          }
+        }
+        fresh.updatedAt = Date.now();
+        render();
+
+        if (["remote", "running"].includes(fresh.status)) {
+          simulateProgress(fresh.id);
+        } else {
+          schedulerTick();
+        }
+      }, delay);
+    }
+
+    function buildAgnesPayload(job) {
+      const payload = {
+        model: AGNES_MODEL,
+        prompt: job.prompt,
+        width: job.width,
+        height: job.height,
+        num_frames: job.numFrames,
+        frame_rate: job.fps
+      };
+      if (job.negativePrompt) payload.negative_prompt = job.negativePrompt;
+      if (Number.isFinite(job.seed)) payload.seed = job.seed;
+      if (Number.isFinite(job.inferenceSteps)) payload.num_inference_steps = job.inferenceSteps;
+      if (job.mode === "image" && job.imageUrls.length) payload.image = job.imageUrls[0];
+      if (job.mode === "multi" && job.imageUrls.length) {
+        payload.extra_body = { image: job.imageUrls };
+      }
+      if (job.mode === "keyframes" && job.imageUrls.length) {
+        payload.mode = "keyframes";
+        payload.extra_body = { image: job.imageUrls, mode: "keyframes" };
+      }
+      return payload;
+    }
+
+    async function fetchJsonWithTimeout(url, options = {}, timeoutMs = 60000) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        const text = await response.text();
+        let data = null;
+        if (text) {
+          try {
+            data = JSON.parse(text);
+          } catch {
+            data = { raw: text.slice(0, 1200) };
+          }
+        }
+        if (!response.ok) {
+          const error = new Error(data?.error?.message || data?.message || classifyHttpError(response.status));
+          error.status = response.status;
+          error.body = data;
+          throw error;
+        }
+        return data || {};
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    async function createRealVideoTask(jobId) {
+      const job = state.jobs.find((item) => item.id === jobId);
+      const key = job ? getKey(job.keyId) : null;
+      const secret = getKeySecret(key);
+      if (!job || !key) return;
+      if (!secret) {
+        failJob(job, "当前会话缺少 API Key，请重新添加 Key");
+        return;
+      }
+      job.attempts = (job.attempts || 0) + 1;
+      job.stage = "POST /v1/videos";
+      job.updatedAt = Date.now();
+      render();
+      try {
+        const body = await fetchJsonWithTimeout(AGNES_CREATE_URL, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${secret}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(buildAgnesPayload(job))
+        }, 120000);
+        job.taskId = body.task_id || body.id || null;
+        job.videoId = body.video_id || null;
+        job.status = body.status === "completed" ? "completed" : "remote";
+        job.progress = Number.isFinite(Number(body.progress)) ? Number(body.progress) : 0;
+        job.seconds = body.seconds || job.seconds;
+        job.actualSize = body.size || job.actualSize;
+        job.stage = job.videoId ? "GET /agnesapi" : "missing video_id";
+        job.updatedAt = Date.now();
+        if (!job.videoId) throw new Error("创建成功但未返回 video_id");
+        render();
+        scheduleRealPoll(job.id, 4000);
+      } catch (error) {
+        handleRealError(job, error, () => createRealVideoTask(job.id));
+      }
+    }
+
+    function scheduleRealPoll(jobId, delayMs) {
+      if (realPollTimers.has(jobId)) clearTimeout(realPollTimers.get(jobId));
+      const timer = setTimeout(() => {
+        realPollTimers.delete(jobId);
+        pollRealVideoResult(jobId);
+      }, delayMs);
+      realPollTimers.set(jobId, timer);
+    }
+
+    async function pollRealVideoResult(jobId) {
+      const job = state.jobs.find((item) => item.id === jobId);
+      const key = job ? getKey(job.keyId) : null;
+      const secret = getKeySecret(key);
+      if (!job || !key || isPaused) return;
+      if (!secret) {
+        failJob(job, "当前会话缺少 API Key，无法继续轮询");
+        return;
+      }
+      if (!job.videoId) {
+        failJob(job, "缺少 video_id，无法轮询");
+        return;
+      }
+      job.pollAttempts = (job.pollAttempts || 0) + 1;
+      job.stage = `poll #${job.pollAttempts}`;
+      job.status = job.status === "remote" ? "remote" : "running";
+      render();
+      const params = new URLSearchParams({ video_id: job.videoId, model_name: AGNES_MODEL });
+      try {
+        const body = await fetchJsonWithTimeout(`${AGNES_QUERY_URL}?${params.toString()}`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${secret}` }
+        }, 60000);
+        const status = body.status || "in_progress";
+        job.progress = Number.isFinite(Number(body.progress)) ? Number(body.progress) : job.progress;
+        job.seconds = body.seconds || job.seconds;
+        job.actualSize = body.size || job.actualSize;
+        job.taskId = body.task_id || body.id || job.taskId;
+        job.error = body.error ? JSON.stringify(body.error) : null;
+        job.updatedAt = Date.now();
+        if (status === "completed") {
+          job.status = "completed";
+          job.progress = 100;
+          job.videoUrl = body.remixed_from_video_id || body.video_url || job.videoUrl;
+          job.stage = job.videoUrl ? "completed" : "completed without url";
+          render();
+          if (job.videoUrl) {
+            schedulerTick();
+          } else {
+            failJob(job, "任务完成但未返回视频 URL");
+          }
+          return;
+        }
+        if (status === "failed") {
+          failJob(job, body.error ? JSON.stringify(body.error) : "视频生成失败");
+          return;
+        }
+        job.status = status === "queued" ? "remote" : "running";
+        job.stage = status;
+        render();
+        const baseDelay = state.settings.pollIntervalMs || 12000;
+        const steadyDelay = job.pollAttempts > 10 ? Math.min(baseDelay * 2, 30000) : baseDelay;
+        scheduleRealPoll(job.id, steadyDelay);
+      } catch (error) {
+        handleRealError(job, error, () => pollRealVideoResult(job.id), true);
+      }
+    }
+
+    function handleRealError(job, error, retryFn, isPoll = false) {
+      const status = error.status || 0;
+      const message = error.name === "AbortError" ? "请求超时" : (error.message || classifyHttpError(status));
+      job.error = message;
+      job.updatedAt = Date.now();
+      const attempts = isPoll ? (job.pollAttempts || 0) : (job.attempts || 0);
+      if ((isRetryableStatus(status) || error.name === "AbortError") && attempts < 5) {
+        const delay = Math.min(60000, 5000 * Math.max(1, attempts));
+        job.stage = `${classifyHttpError(status)}，${Math.round(delay / 1000)} 秒后重试`;
+        render();
+        const timer = setTimeout(retryFn, delay);
+        realPollTimers.set(job.id, timer);
+        return;
+      }
+      failJob(job, `${classifyHttpError(status)}：${message}`);
+    }
+
+    function failJob(job, message) {
+      job.status = "failed";
+      job.stage = "failed";
+      job.error = message;
+      job.updatedAt = Date.now();
+      render();
+      toast(`${job.localNo} 失败：${message}`, "error");
+      schedulerTick();
+    }
+
+    async function openVideo(jobId) {
+      const job = state.jobs.find((item) => item.id === jobId);
+      if (!job) return;
+      if (job.videoUrl) {
+        window.open(job.videoUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
+      toast("没有可打开的视频链接", "error");
+    }
+
+    function retryJob(jobId) {
+      const job = state.jobs.find((item) => item.id === jobId);
+      if (!job) return;
+      job.status = "queued";
+      job.progress = 0;
+      job.error = null;
+      job.stage = "retry";
+      job.attempts = 0;
+      job.pollAttempts = 0;
+      job.taskId = null;
+      job.videoId = null;
+      job.videoUrl = null;
+      job.updatedAt = Date.now();
+      toast(`${job.localNo} 已重新排队`);
+      render();
+      schedulerTick();
+    }
+
+    function clearDone() {
+      state.jobs = state.jobs.filter((job) => !["completed", "failed"].includes(job.status));
+      render();
+      toast("已清理完成和失败任务");
+    }
+
+    function bindEvents() {
+      $("keyForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        addKey($("keyName").value, $("apiKey").value);
+      });
+      $("addKeyBtn").addEventListener("click", () => addKey($("keyName").value, $("apiKey").value));
+      $("seedKeysBtn").addEventListener("click", addDemoKeys);
+      $("startBtn").addEventListener("click", startBatch);
+      $("clearDoneBtn").addEventListener("click", clearDone);
+      $("runMode").addEventListener("change", (event) => {
+        state.settings.runMode = event.target.value === "real" ? "real" : "mock";
+        toast(state.settings.runMode === "real" ? "已切换到真实 API 模式" : "已切换到模拟模式");
+        render();
+      });
+
+      $("pauseBtn").addEventListener("click", () => {
+        isPaused = !isPaused;
+        toast(isPaused ? "队列已暂停" : "队列继续执行");
+        render();
+        if (!isPaused) schedulerTick();
+      });
+
+      $("resetBtn").addEventListener("click", () => {
+        if (!confirm("重置演示数据？")) return;
+        realPollTimers.forEach((timer) => clearTimeout(timer));
+        realPollTimers.clear();
+        sessionSecrets.clear();
+        state = clone(initialState);
+        localStorage.removeItem(STORAGE_KEY);
+        render();
+        toast("演示数据已重置");
+      });
+
+      document.body.addEventListener("click", (event) => {
+        const deleteBtn = event.target.closest("[data-delete-key]");
+        if (deleteBtn) deleteKey(deleteBtn.getAttribute("data-delete-key"));
+        const openVideoBtn = event.target.closest("[data-open-video]");
+        if (openVideoBtn) openVideo(openVideoBtn.getAttribute("data-open-video"));
+        const retryBtn = event.target.closest("[data-retry-job]");
+        if (retryBtn) retryJob(retryBtn.getAttribute("data-retry-job"));
+      });
+
+      document.body.addEventListener("change", (event) => {
+        const toggle = event.target.closest("[data-toggle-key]");
+        if (!toggle) return;
+        const key = getKey(toggle.getAttribute("data-toggle-key"));
+        if (key) {
+          key.enabled = toggle.checked;
+          render();
+          schedulerTick();
+        }
+      });
+    }
+
+    function init() {
+      bindEvents();
+      if (!state.keys.length && getRunMode() === "mock") addDemoKeys();
+      render();
+      setInterval(schedulerTick, 1200);
+    }
+
+    init();
+  </script>
+</body>
+</html>
